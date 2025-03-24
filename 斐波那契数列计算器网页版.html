@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>斐波那契数列计算器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f9;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 30px; /* 增加内边距 */
+            border-radius: 12px; /* 圆角加大 */
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1); /* 阴影加深 */
+            width: 400px; /* 宽度加大 */
+        }
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 12px; /* 内边距加大 */
+            margin-top: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px; /* 圆角加大 */
+        }
+        button {
+            padding: 12px 24px; /* 内边距加大 */
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px; /* 圆角加大 */
+            cursor: pointer;
+            width: calc(100% - 22px);
+            margin-right: 10px;
+        }
+        button:last-child {
+            margin-right: 0;
+        }
+        p {
+            margin: 15px 0;
+            text-align: left;
+        }
+        .instruction {
+            margin-bottom: 20px;
+        }
+        .history-container {
+            margin-top: 20px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>斐波那契数列计算器</h1>
+        <p class="instruction">输入序号查看对应位置的斐波那契数</p>
+        <p class="instruction">输入范围：大于 0 的整数</p>
+        <p class="instruction">输入 3.24 退出</p>
+        <input type="text" id="fibonacciInput" placeholder="输入序号...">
+        <button onclick="calculateFibonacci()">提交猜测</button>
+        <button onclick="clearHistory()">清除历史</button>
+        <p id="result"></p>
+        <div class="history-container">
+            <h3>历史记录</h3>
+            <ul id="historyList"></ul>
+        </div>
+    </div>
+
+    <script>
+        function fibonacci(n) {
+            if (n <= 0) return "输入应大于0"; // 如果 n 小于等于 0，返回错误信息
+
+            if (n === 1 || n === 2) return 1; // 如果 n 是 1 或 2，直接返回 1
+
+            // 定义初始矩阵 [[1, 1], [1, 0]]
+            let matrix = [
+                [1, 1],
+                [1, 0]
+            ];
+
+            // 计算矩阵的 n-2 次方
+            let resultMatrix = power(matrix, n - 2);
+
+            // 返回结果矩阵的第一个元素作为第 n 个斐波那契数
+            return resultMatrix[0][0];
+        }
+
+        // 矩阵乘法函数
+        function multiplyMatrices(a, b) {
+            // 初始化矩阵
+            let result = [
+                [0, 0],
+                [0, 0]
+            ];
+            // 进行矩阵乘法运算
+            for (let i = 0; i < 2; i++) {
+                for (let j = 0; j < 2; j++) {
+                    for (let k = 0; k < 2; k++) {
+                        result[i][j] += a[i][k] * b[k][j];
+                    }
+                }
+            }
+            return result;
+        }
+
+        // 矩阵快速幂函数
+        function power(matrix, n) {
+            // 定义单位矩阵
+            let result = [
+                [1, 0],
+                [0, 1]
+            ];
+
+            // 超人1 用于存储中间矩阵
+            let superman1 = matrix;
+
+            // 快速幂算法
+            while (n > 0) {
+                if (n % 2 === 1) {
+                    result = multiplyMatrices(result, superman1);
+                }
+                superman1 = multiplyMatrices(superman1, superman1);
+                n = Math.floor(n / 2);
+            }
+
+            return result;
+        }
+
+        // 处理输入并显示结果
+        function calculateFibonacci() {
+            const userInput = document.getElementById('fibonacciInput').value.trim();
+            // 如果输入 '3.24'，弹出提示框并退出函数
+            if (userInput === '3.24') {
+                alert("退出程序");
+                return;
+            }
+
+            try {
+                const n = parseInt(userInput, 10); // 输入转换为整数
+                // 如果转换失败或不是有效数字，抛出错误
+                if (isNaN(n)) throw new Error("请输入有效的正整数！");
+                // 如果 n 小于等于 0，抛出错误
+                if (n <= 0) throw new Error("输入应大于 0！");
+                const result = fibonacci(n); // 计算第 n 个斐波那契数
+                // 显示结果
+                document.getElementById('result').innerText = `第 ${n} 位斐波那契数是：${result}\n小知识：斐波那契数列增长率为黄金比例 (≈1.618)`;
+
+                // 添加到历史记录
+                addToHistory(n, result);
+            } catch (error) {
+                document.getElementById('result').innerText = `⚠️ ${error.message}`; // 显示错误信息
+            }
+        }
+
+        // 清除历史记录
+        function clearHistory() {
+            document.getElementById('historyList').innerHTML = '';
+        }
+
+        // 添加到历史记录
+        function addToHistory(n, result) {
+            const historyList = document.getElementById('historyList'); // 获取历史记录列表元素
+            const listItem = document.createElement('li'); // 创建一个新的列表项
+            listItem.innerText = `第 ${n} 位斐波那契数是：${result}`;
+            historyList.appendChild(listItem); // 将项添加列表中
+        }
+    </script>
+</body>
+</html>
+
+
